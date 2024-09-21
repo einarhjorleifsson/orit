@@ -6,7 +6,7 @@
 #' @export
 #'
 hr_connection <- function(password) {
-  RPostgreSQL::dbConnect(drv = 'PostgreSQL',
+  RPostgres::dbConnect(drv = RPostgres::Postgres(),
                  user = 'hafriti_user',
                  password = password,
                  host = 'hfs-lipgsql01.hafogvatn.is',
