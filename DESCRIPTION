@@ -17,5 +17,6 @@ Imports:
   purrr,
   RPostgres,
   stringr,
-  tibble
+  tibble,
+  tidyr
 LazyData: true

@@ -10,7 +10,7 @@
 #     various ad-hoc sources
 
 library(tidyverse)
-library(RPostgreSQL)
+library(RPostgres)
 library(readxl)
 
 # 1. Import available digitized data -------------------------------------------
@@ -48,7 +48,12 @@ fields <-
   rename(type = message_type,
          label = field_label,
          name = field_name,
-         class = field_type)
+         class = field_type) |>
+  # NOTE: This should be double checked
+  mutate(class = case_when(name %in% c("lon", "lat", "altitude") ~ "double",
+                           name %in% c("rate_of_turn") ~ "double",
+                           name %in% c("mag_variation") ~ "double",
+                           .default = class))
 ## Talkers and message types in Arni and Bjarni --------------------------------
 
 ### Get summary data from database ---------------------------------------------
@@ -333,40 +338,40 @@ pxsn_specs <-
 # Datagram description navigation data (POS)
 psdgpos <-
   tribble(~type, ~label, ~name, ~class,
-          "PSDGPOS", "Date of position Format ddmmyy", "date_ddmmyy", "integer",
-          "PSDGPOS", "UTC time of position Format hhmmss", "time_hhmmss", "integer",
-          "PSDGPOS", "Longitude in decimal degrees", "lat_deg", "double",
-          "PSDGPOS", "Latitude in decimal degrees", "lon_deg", "double",
-          "PSDGPOS", "Ship heading in °", "heading_true", "double",
-          "PSDGPOS", "FO/AF speed in kn", "foaf_speed_kn", "double",
-          "PSDGPOS", "Water depth in m", "depth_m", "double",
-          "PSDGPOS", "Course over ground in °", "course", "double",
-          "PSDGPOS", "Speed over ground in kn", "speed_kn", "double")
+          "POS", "Date of position Format ddmmyy", "date_ddmmyy", "datestamp",
+          "POS", "UTC time of position Format hhmmss", "time_hhmmss", "timestamp",
+          "POS", "Longitude in decimal degrees", "lat_deg", "double",
+          "POS", "Latitude in decimal degrees", "lon_deg", "double",
+          "POS", "Ship heading in °", "heading_true", "double",
+          "POS", "FO/AF speed in kn", "foaf_speed_kn", "double",
+          "POS", "Water depth in m", "depth_m", "double",
+          "POS", "Course over ground in °", "course", "double",
+          "POS", "Speed over ground in kn", "speed_kn", "double")
 
 # Datagram description thermosalinograph data (TSS)
 psdgtss <-
   tribble(~type, ~label, ~name, ~class,
-          "PSDGTSS", "Date of position Format ddmmyy", "date_ddmmyy", "integer",
-          "PSDGTSS", "UTC time of position Format hhmmss", "time_hhmmss", "integer",
-          "PSDGTSS", "Sea water temperature in °C", 'temp_seawate', 'double',
-          "PSDGTSS", "Salinity in PSU", 'salinity', 'double',
-          "PSDGTSS", "Sigma theta in kg/m³", 'sigma_theta', 'double',
-          "PSDGTSS", "Conductivity in S/m", 'conductivity', 'double',
-          "PSDGTSS", "Raw fluorometry in V", 'fluorometry', 'double')
+          "TSS", "Date of position Format ddmmyy", "date_ddmmyy", "datestamp",
+          "TSS", "UTC time of position Format hhmmss", "time_hhmmss", "timestamp",
+          "TSS", "Sea water temperature in °C", 'temp_seawate', 'double',
+          "TSS", "Salinity in PSU", 'salinity', 'double',
+          "TSS", "Sigma theta in kg/m³", 'sigma_theta', 'double',
+          "TSS", "Conductivity in S/m", 'conductivity', 'double',
+          "TSS", "Raw fluorometry in V", 'fluorometry', 'double')
 
 # Datagram description MET (meteo data)
 psdgmet <-
   tribble(~type, ~label, ~name, ~class,
-          "PSDGMET", "Date of position Format ddmmyy", "date_ddmmyy", "integer",
-          "PSDGMET", "UTC time of position Format hhmmss", "time_hhmmss", "integer",
-          "PSDGMET", "Mean wind speed in m/s", "wind_speed_ms", "double",
-          "PSDGMET", "Wind gust speed in m/s", "gust_speed_ms", "double",
-          "PSDGMET", "Wind direction in °", "wind_direction", "double",
-          "PSDGMET", "Air temperature in °C", "air_temp", "double",
-          "PSDGMET", "Humidity in %", "rel_humidity", "double",
-          "PSDGMET", "Solar radiation in W/m²", "solar_rad_wm2", "double",
-          "PSDGMET", "Atmospheric pressure in hPa", "pressure_hpa", "double",
-          "PSDGMET", "Sea water temperature in °C", "water_temp", "double")
+          "MET", "Date of position Format ddmmyy", "date_ddmmyy", "datestamp",
+          "MET", "UTC time of position Format hhmmss", "time_hhmmss", "timestamp",
+          "MET", "Mean wind speed in m/s", "wind_speed_ms", "double",
+          "MET", "Wind gust speed in m/s", "gust_speed_ms", "double",
+          "MET", "Wind direction in °", "wind_direction", "double",
+          "MET", "Air temperature in °C", "air_temp", "double",
+          "MET", "Humidity in %", "rel_humidity", "double",
+          "MET", "Solar radiation in W/m²", "solar_rad_wm2", "double",
+          "MET", "Atmospheric pressure in hPa", "pressure_hpa", "double",
+          "MET", "Sea water temperature in °C", "water_temp", "double")
 
 psdg_specs <-
   bind_rows(psdgmet, psdgpos, psdgtss)
@@ -416,7 +421,9 @@ hr_fields <-
             psdg_specs,
             xdr_specs,
             atw_specs,
-            fields)
+            fields |>
+              # This stuff needs checking
+              filter(type != "XDR"))
 
 # Expect zero rows
 hr_fields |>

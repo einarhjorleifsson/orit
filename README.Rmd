@@ -1,0 +1,138 @@
+---
+output: github_document
+---
+
+## Preamble
+
+The {orit}-package in intended to be helpful when parsing messages from "Hafriti". The aim is that all variables are returned as correct types (integer, numeric, character, date, time, datetime, etc.).
+
+## Test run
+
+Here we use subsample of data from the Postgres database with up to 1000 records of each "message type" from research vessels Árni and Bjarni.
+
+### Needed libraries
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(orit)
+```
+
+### Data preparations
+
+```{r}
+# The subsample data, use shorter name for "nmea_message"
+pg <- postgres_test_data |> rename(m = nmea_message)
+# Get the types, but excludes types not yet dealt with
+TYPES <-
+  pg |>
+  filter(!type %in% c("NO IDEA")) |>
+  pull(type) |> unique() |> sort()
+TYPES
+```
+
+### Data prior to parsing
+
+The following is a peek at the first two records from each vessel for each type:
+
+
+```{r}
+pg |> 
+  group_by(type, skip) |> 
+  slice(1:2) |> 
+  ungroup() |> 
+  select(skip, type, m) |> 
+  as.data.frame() |> 
+  print()
+```
+
+
+### Parse each message type and print out some results
+
+```{r}
+res <- list()
+for(t in 1:length(TYPES)) {
+  print(TYPES[t])
+  res[[t]] <-
+    hr_message_parse(pg, TYPES[t])
+  res[[t]] |> glimpse()
+}
+names(res) <- TYPES
+```
+
+## Still known problems
+
+### type GLL
+
+* Seems like Bjarni does not have variable "faa_mode" (the last field prior to "check"):
+
+```{r}
+pg |> 
+  filter(type == "GLL") |> 
+  group_by(skip) |> 
+  slice(1:2) |> 
+  ungroup() |> 
+  select(skip, m)
+```
+
+### type HBT
+
+Unknown format:
+
+```{r}
+pg |> 
+  filter(type == "HBT") |> 
+  group_by(skip) |> 
+  slice(1:2) |> 
+  ungroup() |> 
+  select(skip, m)
+```
+
+### type MSD
+
+Unknown format:
+
+```{r}
+pg |> 
+  filter(type == "MSD") |> 
+  group_by(skip) |> 
+  slice(1:2) |> 
+  ungroup() |> 
+  select(skip, m)
+```
+
+### type SM2
+
+Unknown format:
+
+```{r}
+pg |> 
+  filter(type == "SM2") |> 
+  group_by(skip) |> 
+  slice(1:2) |> 
+  ungroup() |> 
+  select(skip, m)
+```
+
+### type XDR
+
+Get message: NAs introduced by coercion
+
+```{r}
+pg |> 
+  filter(type == "XDR") |> 
+  group_by(skip) |> 
+  slice(1:2) |> 
+  ungroup() |> 
+  select(skip, m)
+```
+
+### NO IDEA
+
+```{r}
+pg |> 
+  filter(type == "NO IDEA") |> 
+  count(message_type)
+```
+
