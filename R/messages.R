@@ -17,7 +17,8 @@ hr_message_parse <- function(m, TYPE = "ATW") {
   cn_timestamp <- hr_fields  |> dplyr::filter(class == "timestamp") |> dplyr::pull(name) |> unique()
 
   cn <- hr_fields |> dplyr::filter(type == TYPE) |> dplyr::pull(name)
-  if(TYPE %in% c("DTM")) {
+  # Some messages do not have a checksum
+  if(TYPE %in% c("DTM", "HBT")) {
     cn <- c(".id", cn)
   } else {
     cn <- c(".id", cn, ".check")

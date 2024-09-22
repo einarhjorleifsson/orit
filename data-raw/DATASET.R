@@ -214,7 +214,7 @@ talkers2 <-
                             talker == "DB" ~ "Depth sounder",
                             talker == "IMWV" ~ "ERROR",                         # Seems to be an error
                             talker == "JSON" ~ "TO DO",                         # Not solved yet
-                            talker == "MP" ~ "Marport's proprietary sentence", # https://marport.com/doc_web/scala/topics/r-NMEAOutputSentences.html
+                            talker == "MP" ~ "Marport",                         # https://marport.com/doc_web/scala/topics/r-NMEAOutputSentences.html
                             talker == "NM" ~ "Naust Marine - winch stuff",
                             talker == "PFEC" ~ "HELP NEEDED",
                             talker == "PSCM" ~ "Scanmar stuff",            # https://www.kongsberg.com/contentassets/4cce87e469c14794bcde42406bd99ec4/361017ad_mdm500_reference_manual.pdf
@@ -239,8 +239,8 @@ types2 <-
   meta |>
   filter(type_standard == "no") |>
   mutate(type_desc =
-           case_when(type == "HBT" ~ "HELP NEEDED",
-                     type == "MSD" ~ "HELP NEEDED",
+           case_when(type == "HBT" ~ "Heartbeat supervision sentence",   # https://www.jrc-world.com/files/products/162-compsat-jrc-jlr-21-31-instruct-manual-13-2-2017_1552307048_12be3965.pdf
+                     type == "MSD" ~ "Marport Sensor Data",  # https://marport.com/doc_web/scala/topics/r-NMEAOutputSentences.html
                      type == "ATW" ~ "HELP NEEDED",
                      type == "DBS" ~ "Depth below surface",
                      type == "SM2" ~ "HELP NEEDED",
@@ -413,6 +413,38 @@ atw_specs <-
           'ATW', 'line_speed_mid', 'line_speed_mid', 'double',
           'ATW', 'tow_time', 'tow_time', 'double')
 
+### MARPORT --------------------------------------------------------------------
+# https://marport.com/doc_web/scala/topics/r-NMEAOutputSentences.html
+marport_specs <-
+  tribble(~type, ~label, ~name, ~class,
+          "MSD", "1 or 2 letters indicating on which gear the sensor is installed. This is useful only for twin or triple trawl gears", "which_gear", "character",
+          "MSD", "2 letters indicating the part of the gear where the sensor is installed", "which_part", "character",
+          "MSD", "numerical code that is a Marport sensor node identifier related to the Mx receiver configuration. It is used in Scala to position the sensors in the 3D views", "which_node", "integer",
+          "MSD", "type of sensor data", "sensor_type", "character",
+          "MSD", "acronym of the unit", "unit", "character",
+          "MSD", "decimal value", "value", "double")
+
+### HBT
+# Heartbeat supervision sentence
+# https://www.jrc-world.com/files/products/162-compsat-jrc-jlr-21-31-instruct-manual-13-2-2017_1552307048_12be3965.pdf
+hbt_specs <-
+  tribble(~type, ~label, ~name, ~class,
+          "HBT", "Configured repeat interval", "interval", "double",
+          "HBT", "Equipment status, A: Yes, V: No", "status", "character",
+          "HBT", "Sequential sentence identifier, 0-9", "identifier", "integer")
+
+### PSCSM2
+# https://www.kongsberg.com/contentassets/4cce87e469c14794bcde42406bd99ec4/361017ad_mdm500_reference_manual.pdf
+sm2_specs <-
+  tribble(~type, ~label, ~name, ~class,
+          "SM2", "Time", "time", "double",
+          "SM2", "Status", "status", "character",
+          "SM2", "sensor_type", "sensor_type", "character",
+          "SM2", "sensor_id", "sensor_id", "character",
+          "SM2", "measure_id", "measure_id", "character",
+          "SM2", "measure_value", "measure_value", "double",
+          "SM2", "QA factor", "qa_factor", "character")
+
 
 ### Bind all --------------------------------------------------------------------
 
@@ -421,6 +453,9 @@ hr_fields <-
             psdg_specs,
             xdr_specs,
             atw_specs,
+            marport_specs,
+            hbt_specs,
+            sm2_specs,
             fields |>
               # This stuff needs checking
               filter(type != "XDR"))
