@@ -1,0 +1,71 @@
+---
+title: "The dump"
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+Parsing all the messages in the Postgres database and then store the lot as parquet files
+
+```{r eval = FALSE}
+# run this as:
+#  nohup R < scripts/postgres_to_arrow.R --vanilla > scripts/postgres_to_arrow_2024-09-22.log &
+
+library(tidyverse)
+library(arrow)
+library(orit)
+con <- hr_connection(read_rds("TOPSECRET.rds"))
+
+TYPES <- postgres_test_data |> filter(type != "NO IDEA") |> pull(type) |> unique() |> sort()
+SKIP <- c("arni", "bjarni")
+VID <- c(2350, 1131)
+YEARS <- 2021:2024
+QUARTERS <- 1:4
+
+
+# the dump
+for(t in 1:length(TYPES)) {
+  TP <- TYPES[t]
+  print(TP)
+
+  for(y in 1:length(YEARS)) {
+    Y <- YEARS[y]
+    print(Y)
+
+    for(q in 1:length(QUARTERS)) {
+      Q <- QUARTERS[q]
+      print(Q)
+
+      for(s in 1:length(SKIP)) {
+        S <- SKIP[s]
+        print(S)
+
+        # get the data
+        d <-
+          hr_sensor(con, skip = S) |>
+          mutate(year = year(date_time),
+                 quarter = quarter(date_time)) |>
+          filter(year == Y,
+                 quarter == Q,
+                 type == TP) |>
+          collect(n = Inf)
+
+        d |>
+          rename(m = nmea_message) |>
+          hr_message_parse(TYPE = TP) |>
+          mutate(vid = VID[s]) |>
+          group_by(type, vid, year, quarter) |>
+          arrow::write_dataset("data")
+
+
+      }
+    }
+  }
+}
+
+devtools::session_info()
+```
