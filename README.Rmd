@@ -4,7 +4,8 @@ output: github_document
 
 ## Preamble
 
-The {orit}-package in intended to be helpful when parsing messages from "Hafriti". The aim is that all variables are returned as correct types (integer, numeric, character, date, time, datetime, etc.).
+The {orit}-package in intended to be helpful when parsing [NMEA-messages](https://en.wikipedia.org/wiki/National_Marine_Electronics_Association).  The aim is that all variables are returned as correct types (integer, numeric, character, date, time, datetime, etc.).
+
 
 ## Test run
 
@@ -40,11 +41,11 @@ The following is a peek at the first two records from each vessel for each type:
 ```{r}
 pg |> 
   group_by(type, skip) |> 
-  slice(1:2) |> 
+  slice(1) |> 
   ungroup() |> 
-  select(skip, type, m) |> 
-  as.data.frame() |> 
-  print()
+  select(m) |> 
+  drop_na() |> 
+  pull(m)
 ```
 
 

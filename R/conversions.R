@@ -5,7 +5,7 @@
 #' @return A vector
 #' @export
 #'
-convert_coord <- function(x) {
+convert_coord_DDMM.mmmmm <- function(x) {
 
   # It's simpler to do the arithmetic on positive numbers, we'll add the signs
   #  back in at the end.

@@ -1,0 +1,124 @@
+---
+title: "The json"
+author: "Einar Hjörlefisson"
+date: "2025-03-10"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+```
+library(tidyverse)
+# remotes::install_github("einarhjorleifsson/orit")
+library(orit)
+con <- hr_connection(read_rds("/home/haf/einarhj/stasi/hafriti/TOPSECRET.rds"))
+hr_sensor(con, skip = "arni") |> 
+  mutate(year = year(date_time),
+         month = month(date_time)) |> 
+  filter(!is.na(json_message),
+         year == 2024,
+         month == 3) |> 
+  collect() ->
+  d
+# just the first record: 
+d |> 
+  slice(1) |> 
+  pull(json_message) ->
+  txt
+# one way, but requires writing to disk
+cat(txt, file = "tmp.json")
+jsonlite::fromJSON("tmp.json")
+```
+
+```
+$Version
+[1] 201901
+
+$Ship
+$Ship$Version
+[1] 201901
+
+$Ship$Measurements
+$Ship$Measurements$`NA`
+  Version Time.days Time.nanoOfDay                        Measurement      MeasId     Value  Quality
+1  201901     19794   5.571221e+13         Latitude Undefined Ship 0   1332116005  65.18140   Active
+2  201901     19794   5.571221e+13  TrueHeading NotApplicable Ship 0    411235646 185.32173   Active
+3  201901     19794   5.571234e+13            TimeToShip Port Door 0   -607423908   0.00000 Inactive
+4  201901     19794   5.571221e+13        Longitude Undefined Ship 0    525546965 -24.99728   Active
+5  201901     19794   5.571221e+13 CourseOverGround Undefined Ship 0  -2062173889 184.60000   Active
+6  201901     19794   5.571221e+13  SpeedOverGround Undefined Ship 0    196426127   3.46734   Active
+7  201901     19794   5.571221e+13  Temperature NotApplicable Ship 0  -1396025866   0.00000 Inactive
+
+
+
+$TrawlGear
+$TrawlGear$Version
+[1] 201901
+
+$TrawlGear$PortDoor
+$TrawlGear$PortDoor$Version
+[1] 201901
+
+$TrawlGear$PortDoor$Measurements
+$TrawlGear$PortDoor$Measurements$Door
+  Version Time.days Time.nanoOfDay                              Measurement      MeasId      Value   Quality
+1  201901     19794   5.571221e+13 Distance NotApplicable DoorDoor 0 XD1211    36449890  9.2123600 Uncertain
+2  201901     19794   5.571221e+13           Temperature Port Door 0 XD1211 -1853827610  4.3392246    Active
+3  201901     19794   5.571221e+13                 Depth Port Door 0 XD1211  -620110025 17.3167038    Active
+4  201901     19794   5.571221e+13                Height Port Door 0 XD1211  1808780972 18.6624799  Inactive
+5  201901     19794   5.571221e+13               RollAvg Port Door 0 XD1211   -99222204  0.2088917 Uncertain
+6  201901     19794   5.571221e+13               RollStd Port Door 0 XD1211   -99222203 16.0689512 Uncertain
+7  201901     19794   5.571221e+13              PitchAvg Port Door 0 XD1211   -99222202  0.0000000  Inactive
+8  201901     19794   5.571221e+13              PitchStd Port Door 0 XD1211   -99222201  4.2066097 Uncertain
+
+
+
+$TrawlGear$StbdDoor
+$TrawlGear$StbdDoor$Version
+[1] 201901
+
+$TrawlGear$StbdDoor$Measurements
+$TrawlGear$StbdDoor$Measurements$Door
+  Version Time.days Time.nanoOfDay                         Measurement      MeasId      Value   Quality
+1  201901     19794   5.571221e+13     RollAvg Starboard Door 0 XD1214  1359897154   0.000000  Inactive
+2  201901     19794   5.571221e+13       Depth Starboard Door 0 XD1214 -1039006638 388.226907    Active
+3  201901     19794   5.571221e+13      Height Starboard Door 0 XD1214 -1596764696   0.000000  Inactive
+4  201901     19794   5.571221e+13    PitchStd Starboard Door 0 XD1214 -1368986201   5.571167 Uncertain
+5  201901     19794   5.571221e+13    PitchAvg Starboard Door 0 XD1214   197097740   4.941741 Uncertain
+6  201901     19794   5.571221e+13 Temperature Starboard Door 0 XD1214  1238729771   4.684827 Uncertain
+7  201901     19794   5.571221e+13     RollStd Starboard Door 0 XD1214  -206186787   0.000000  Inactive
+
+
+
+$TrawlGear$Clumps
+named list()
+
+$TrawlGear$Nets
+$TrawlGear$Nets$Single
+$TrawlGear$Nets$Single$Version
+[1] 201901
+
+$TrawlGear$Nets$Single$Measurements
+$TrawlGear$Nets$Single$Measurements$Headrope
+  Version Time.days Time.nanoOfDay                                Measurement      MeasId        Value  Quality
+1  201901     19794   5.571221e+13 FishDensity NotApplicable Headrope 0 E2044 -1274465402 7.599249e+00   Active
+2  201901     19794   5.571221e+13   Clearance NotApplicable Headrope 0 E2044  -884328338 1.252125e-15   Active
+3  201901     19794   5.571221e+13      Height NotApplicable Headrope 0 E2044  1355405221 2.176364e+00   Active
+4  201901     19794   5.571221e+13     Opening NotApplicable Headrope 0 E2044  1594347394 2.176224e+00   Active
+5  201901     19794   5.571234e+13                TimeToShip Port Headrope 0    280694766 5.000000e+01 Inactive
+
+$TrawlGear$Nets$Single$Measurements$Codend
+   Version Time.days Time.nanoOfDay                            Measurement     MeasId     Value   Quality
+1   201901     19794   5.571221e+13    Catch NotApplicable Codend 1 XP2551 1436905674  0.000000    Active
+2   201901     19794   5.571221e+13 PitchAvg NotApplicable Codend 1 XP2551  517331794 -5.055659    Active
+3   201901     19794   5.571221e+13 PitchStd NotApplicable Codend 1 XP2551  517331795 12.210000 Uncertain
+4   201901     19794   5.571221e+13  RollAvg NotApplicable Codend 1 XP2551  517331796 88.012269    Active
+5   201901     19794   5.571221e+13  RollStd NotApplicable Codend 1 XP2551  517331797 20.015289    Active
+6   201901     19794   5.571221e+13  RollStd NotApplicable Codend 0 XP2553 1208746667 19.654725    Active
+7   201901     19794   5.571221e+13  RollAvg NotApplicable Codend 0 XP2553 1208746668 73.238929    Active
+8   201901     19794   5.571221e+13 PitchStd NotApplicable Codend 0 XP2553 1208746669 11.739167 Uncertain
+9   201901     19794   5.571221e+13 PitchAvg NotApplicable Codend 0 XP2553 1208746670 -2.544101    Active
+10  201901     19794   5.571221e+13    Catch NotApplicable Codend 0 XP2553  895239181  0.000000    Active
+```

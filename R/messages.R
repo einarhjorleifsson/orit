@@ -64,11 +64,26 @@ hr_message_parse <- function(m, TYPE = "ATW") {
       ret <-
         ret |>
         dplyr::mutate(time_hhmmss = paste(stringr::str_sub(time_hhmmss, 1, 2), stringr::str_sub(time_hhmmss, 3, 4), stringr::str_sub(time_hhmmss, 5, 6),
-                                        sep = ":")) |>
+                                          sep = ":")) |>
         dplyr::mutate(dplyr::across(dplyr::all_of(var.tms), lubridate::hms))
     }
-
   }
+
+  if(TYPE %in% c("DTM", "GGA", "GLL", "GNS", "RMA", "RMC", "TLL", "TRF", "WPL")) {
+    ret <-
+      ret |>
+      dplyr::mutate(lon = dplyr::case_when(lon_dir == "W" ~ -lon,
+                                   .default = lon),
+                    lat = dplyr::case_when(lat_dir == "S" ~ -lat,
+                                    .default = lat),
+                    lon = convert_coord_DDMM.mmmmm(lon),
+                    lat = convert_coord_DDMM.mmmmm(lat))
+  }
+
+  # drop json_message variable if empty
+  i <- any(!is.na(ret$json_message))
+  if(!i) ret <- ret |> dplyr::select(-json_message)
+
   return(ret)
 }
 

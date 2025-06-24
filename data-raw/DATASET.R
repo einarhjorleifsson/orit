@@ -40,10 +40,11 @@ types <-
 # The data from the nmea-package were dumped to csv on 2024--09-20
 if(FALSE) {
   nmea::nmea_fields |>
-    write_csv("data-raw/nmea-package_fields.csv")
+    write_csv("data-raw/nmea-package_fields_2024-09-20.csv")
 }
 fields <-
   read_csv("data-raw/nmea-package_fields.csv",
+           comment = "#",
            show_col_types = FALSE) |>
   rename(type = message_type,
          label = field_label,
